@@ -1,47 +1,56 @@
 let messages = document.querySelector('.messages');
 let userList = document.getElementById('users');
 let usernameLabel = document.querySelector('.usernameLabel');
+const socket = io();
 
 
 $(function () {
-    var socket = io();
+    const username = readUserCookie();
+    if(username !== ''){
+        socket.emit('cookie user', `${username}`);
+    }
+    else{
+        socket.emit('new user', '');
+    }
+    
     $('form').submit(function(e){
       e.preventDefault(); // prevents page reloading
       socket.emit('chat message', $('#m').val());
       $('#m').val('');
       return false;
     });
-    socket.on('chat message', function(msg){
-      // $('#messages').append($('<li>').text(msg));
-        displayMessage(msg);
 
-        // messages.scrollTop = messages.;
+    socket.on('chat message', function(msg){
+        displayMessage(msg);
     });
 
     socket.on('userList', function(users){
         displayUsers(users);
     })
-
+    
     socket.on('username', function(user){
         displayUser(user);
+        updateUserCookie(user);
     })
 
     socket.on('color', function(colorMessage){
-        changeColor(colorMessage.user, colorMessage.cssColor);
+        changeColor(colorMessage.id, colorMessage.cssColor);
     })
 });
 
 function displayMessage(chatMessage) {
-// $('#messages').append($('<li>').text(chatMessage));
 
-console.log(chatMessage);
     const div = document.createElement('div');
     div.classList.add('chatMessage');
-    div.innerHTML = `<p class="messageData ${chatMessage.username}">${chatMessage.username}<span>    ${chatMessage.time}</span></p>
+    div.innerHTML = `<p class="messageData u${chatMessage.id}">${chatMessage.username}<span>    ${chatMessage.time}</span></p>
     <p class="messageText">${chatMessage.text} </p>`;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
-    changeColor(chatMessage.username, chatMessage.usernameColor);
+
+    if(chatMessage.id === socket.id){
+        div.style.backgroundColor = 'Aquamarine';
+    }
+    changeColor(chatMessage.id, chatMessage.usernameColor);
 }
 
 function displayUsers(users){
@@ -58,10 +67,22 @@ function displayUser(user){
     usernameLabel.innerText = user;
 }
 
-function changeColor(user, color){
-    usernameLabel.style.color = color;
-    let usernames = document.getElementsByClassName(user);
+function updateUserCookie(user){
+    document.cookie = `username=${user}; SameSite=Strict`;
+}
+
+function changeColor(id, color){
+    if(socket.id === id){
+        usernameLabel.style.color = color;
+    }
+    let usernames = document.getElementsByClassName('u' + id);
     for (var i = 0; i < usernames.length; i++) {
         usernames[i].style.color = color;
     }
+}
+
+function readUserCookie(){
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; username=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
 }
