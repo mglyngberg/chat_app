@@ -1,3 +1,5 @@
+const PORT = 12113;
+const MESSENGER_COLOR = '#000000'
 var express = require('express');
 const { join } = require('path');
 var app = express();
@@ -15,31 +17,27 @@ app.use(express.static(path.join(__dirname, '')));
 io.on('connection', (socket) => {
   console.log('a user connected');
 
-  const user = addUser(socket.id, Math.random().toString(36).substring(7));
-  
+  const user = addUser(socket.id, Math.random().toString(36).substring(2, 7));
   socket.on('cookie user', (username) => {
     if(changeUserName(socket.id, username)){
-      io.emit('userList', users);
       io.to(socket.id).emit('username', username);
-
-      socket.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger',user.color, `Welcome to chat ${user.username}`));
-      socket.broadcast.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger', user.color, `${user.username} connected to chat`));
     }
     else{
-      io.emit('userList', users);
       io.to(socket.id).emit('username', user.username);
-  
-      socket.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger',user.color, `Welcome to chat ${user.username}`));
-      socket.broadcast.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger', user.color, `${user.username} connected to chat`));
     }
+    io.emit('userList', users);
+    socket.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger', MESSENGER_COLOR, `Welcome to chat ${user.username}`));
+    const message = createMessage(MESSENGER_ID, 'Magnus Messenger', MESSENGER_COLOR, `${user.username} connected to chat`);
+    io.emit('chat message', message);
+    logMessage(message);
   });
 
   socket.on('new user', () => {
     io.emit('userList', users);
     io.to(socket.id).emit('username', user.username);
 
-    socket.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger',user.color, `Welcome to chat ${user.username}`));
-    socket.broadcast.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger', user.color, `${user.username} connected to chat`));
+    socket.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger', MESSENGER_COLOR, `Welcome to chat ${user.username}`));
+    socket.broadcast.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger', MESSENGER_COLOR, `${user.username} connected to chat`));
   });
 
   messageHistory.forEach(message => {
@@ -51,7 +49,9 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('user disconnected');
     if(removeUser(socket.id)){
-      socket.broadcast.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger', user.color, `${user.username} disconnected`));
+      const message = createMessage(MESSENGER_ID, 'Magnus Messenger', MESSENGER_COLOR, `${user.username} disconnected`);
+      socket.broadcast.emit('chat message', message);
+      logMessage(message);
       io.emit('userList', users);
     }
   });
@@ -67,8 +67,8 @@ io.on('connection', (socket) => {
   });
 });
 
-http.listen(3000, () => {
-  console.log('listening on *:3000');
+http.listen(PORT, () => {
+  console.log(`listening on *:${PORT}`);
 });
 
 function createMessage(id, username, usernameColor, text){
@@ -121,10 +121,10 @@ function checkCommands(id, msg){
       let colorMessage = {id, cssColor};
       io.emit('color', colorMessage);
       changeUserColor(id, cssColor);
-      io.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger','#000000', `${msg.username} has changed their color to ${cssColor}`));
+      io.to(id).emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger',MESSENGER_COLOR, `Changed color to ${cssColor}`));
     }
     else{
-      io.to(id).emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger','#000000', `${color} is not a valid color`));
+      io.to(id).emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger',MESSENGER_COLOR, `${color} is not a valid color`));
     }
     return true;
   }
@@ -133,12 +133,12 @@ function checkCommands(id, msg){
     let username = msg.text.slice(6, msg.text.length);
 
     if(changeUserName(id, username)){
-      io.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger','#000000', `${msg.username} has changed their name to ${username}`));
+      io.emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger',MESSENGER_COLOR, `${msg.username} has changed their name to ${username}`));
       io.emit('userList', users);
       io.to(id).emit('username', username);
     }
     else{
-      io.to(id).emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger','#000000', `${username} is taken already`));
+      io.to(id).emit('chat message', createMessage(MESSENGER_ID, 'Magnus Messenger',MESSENGER_COLOR, `${username} is taken already`));
     }
     return true;
   }
@@ -159,7 +159,6 @@ function changeUserColor(id, color){
 }
 
 function changeUserName(id, username) {
-  
   const i = users.findIndex(user => user.username === username);
   if(i !== -1){
     return false;

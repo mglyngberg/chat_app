@@ -6,7 +6,7 @@ const socket = io();
 
 $(function () {
     const username = readUserCookie();
-    if(username !== ''){
+    if(username !== '' && username !== undefined){
         socket.emit('cookie user', `${username}`);
     }
     else{
@@ -39,7 +39,6 @@ $(function () {
 });
 
 function displayMessage(chatMessage) {
-
     const div = document.createElement('div');
     div.classList.add('chatMessage');
     div.innerHTML = `<p class="messageData u${chatMessage.id}">${chatMessage.username}<span>    ${chatMessage.time}</span></p>
@@ -48,7 +47,7 @@ function displayMessage(chatMessage) {
     messages.scrollTop = messages.scrollHeight;
 
     if(chatMessage.id === socket.id){
-        div.style.backgroundColor = 'Aquamarine';
+        div.style.backgroundColor = '#d9e4dd';
     }
     changeColor(chatMessage.id, chatMessage.usernameColor);
 }
