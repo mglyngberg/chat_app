@@ -24,7 +24,6 @@ form button { width: 90px; background: #d9e4dd; border: none; padding: 10px; bor
 }
 
 .container{
-	/* background-color: red; */
 	width: 960px;
 	margin: auto;
 }
@@ -33,7 +32,6 @@ form button { width: 90px; background: #d9e4dd; border: none; padding: 10px; bor
     padding: 35px;
     height: 92vh;
 	overflow-y:scroll;
-	/* padding-bottom: 8vh; */
 }
 .messages .messageText {
 	font-size: 15px;
@@ -46,22 +44,3 @@ form button { width: 90px; background: #d9e4dd; border: none; padding: 10px; bor
 	padding: 10px;
 	margin: 10px;
 }
-/* .chat-messages .message {
-	padding: 10px;
-	margin-bottom: 15px;
-	background-color: var(--light-color);
-	border-radius: 5px;
-	overflow-wrap: break-word;
-}
-
-.chat-messages .message .meta {
-	font-size: 15px;
-	font-weight: bold;
-	color: var(--dark-color-b);
-	opacity: 0.7;
-	margin-bottom: 7px;
-}
-
-.chat-messages .message .meta span {
-	color: #777;
-} */
